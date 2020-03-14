@@ -1,0 +1,36 @@
+version: "3.6"
+# Pass in MySql password in the secrets.env file as an
+# Environment variable named "MYSQL_ROOT_PASSWORD"
+services:
+  db:
+    image: mysql:8
+    expose:
+      - "3306"
+    ports:
+      - "5000:3306"
+    env_file:
+      - secrets.env
+    volumes:
+      - "data:/var/lib/mysql"
+  web:
+    build: .
+    expose:
+      - "8080"
+    depends_on:
+      - db
+    env_file:
+      - secrets.env
+    volumes:
+      - ./www/templates:/www/templates
+      - ./www/static:/www/static
+  nginx:
+    image: nginx:1.17.2
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - web
+volumes:
+  data:
+    driver: "local"

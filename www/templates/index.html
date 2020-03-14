@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+    <script src="https://kit.fontawesome.com/4a7b39ba4a.js"></script>
+    <title>成语接龙工具</title>
+</head>
+<body>
+    <div class="container">
+        <h1 class="purple header">成语接龙工具</h1>
+        <h2>一个用来在成语接龙中逼死别人的工具</h2>
+    </div>
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" name="idiom" id="idiom-input" placeholder="在这里输入成语...">
+            <button id="idiom-search"><i class="fas fa-search"></i></button>
+        </div>
+        <label for="depth">接龙层数:</label>
+        <select name="depth" id="depth">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5" selected="selected">5</option>
+        </select>
+        <h2 class="header purple light" id="notify" style="margin-top:2px;">uwu</h2>
+        <div id="result"></div>
+    </div>
+    <div class="container">
+        <h1 class="purple header">Credits</h1>
+        <h2>Written by <a href="https://laoqiu233.github.io/portfolio" class="purple">Dmitri Qiu</a></h2>
+        <h2>词库来自<a href="http://thuocl.thunlp.org/" class="purple">清华大学开放中文词库</a></h2>
+        <h2>如果觉得好用不妨考虑赞助一下(・∀・)</h2>
+        <img src="{{url_for('static', filename='wechat.jpg')}}" alt="微信支付码">
+    </div>
+    <script>
+        document.getElementById("idiom-input").addEventListener("keyup", function(e) {localStorage
+            if (e.keyCode == 13) {
+                e.preventDefault();
+                document.getElementById("idiom-search").click();
+            }
+        });
+        document.getElementById("idiom-search").onclick = search;
+        notify = document.getElementById("notify");
+        function search() {
+            // Clear previous results
+            document.getElementById("result").childNodes.forEach(element => {
+                document.getElementById("result").removeChild(element);
+            });
+            // If the idiom is valid
+            if (/^[\u4e00-\u9fa5]{4}$/.test(document.getElementById("idiom-input").value.trim())) {
+                notify.innerHTML = "正在搜索...";
+                // Fetch from api
+                fetch(`get?idiom=${document.getElementById("idiom-input").value.trim()}&depth=${document.getElementById("depth").value}`).then(function(response) {
+                    if (response.ok) {
+                        // Parse the json data
+                        response.json().then(function(data) {
+                            if (data["data"].length > 0) {
+                                // Make a list of results
+                                list = document.createElement("ul");
+                                document.getElementById("result").appendChild(list);
+                                data["data"].forEach(element => {
+                                    list_item = document.createElement("li");
+                                    list_item.innerHTML = element;
+                                    list.appendChild(list_item);
+                                    if (data["data"][data["data"].length - 1] == element) {
+                                        list_item.style = "border:none;padding:0;margin:0;"
+                                    }
+                                });
+                                notify.innerHTML = `找到了${data["data"].length}条结果哟!`;
+                            } else {
+                                // If there are no results
+                                notify.innerHTML = "(´；ω；`)什么都没找到 试试更改接龙层数吧！";
+                            }
+                        });
+                    } else {
+                        // Display the status code
+                        notify.innerHTML = `（ ﾟ Дﾟ)出错了 (状态码:${response.status})`;
+                    }
+                });
+            } else {
+                notify.innerHTML = "请输入有效的成语嗷";
+            }
+        }
+    </script>
+</body>
+</html>
